@@ -73,11 +73,13 @@ class ReplayBuffer:
 
     # Extract the most recent obs from the state that includes history.
     def extract_obs(self, state: np.array):
-        return torch.tensor(
-            state[-self.num_channels:].reshape(self.obs_shape),
-            dtype=self.obs_dtype, device=self.storage_device
-        )
-
+        if isinstance(state, torch.Tensor):  # Check if state is already a tensor
+            return state[-self.num_channels:].reshape(self.obs_shape).clone().detach().to(self.storage_device)
+        else:
+            return torch.tensor(
+                state[-self.num_channels:].reshape(self.obs_shape),
+                dtype=self.obs_dtype, device=self.storage_device
+            ).clone().detach()
 
     # Used to map discrete actions to one hot or normalize continuous actions.
     def one_hot_or_normalize(self, action: int | float):
